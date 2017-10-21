@@ -52,9 +52,8 @@ def create_run(name, num):
 
     data = [d6x2_trace, d12_trace, d6x2_drop12_trace, d12_drop12_trace]
     layout = go.Layout(title=name, width=800, height=640)
-    fig = go.Figure(data=data, layout=layout)
-    outpath = os.path.join(PROJ_DIR, "out", "{}.png".format(name))
-    py.image.save_as(fig, filename=outpath)
+    py.image.save_as(go.Figure(data=data, layout=layout),
+                     filename=PROJ_PATH.joinpath("out", "{}.png".format(name)))
 
 
 def create_series():
@@ -97,13 +96,12 @@ dice_data = [
 
 def main():
     num_turns = 500
-    name = "value-over-turns-{}-5".format(num_turns)
+    name = "value-over-turns-{}".format(num_turns)
     data = []
     for dice in dice_data:
         data.append(get_value_over_turns_trace(dice, num_turns))
     layout = go.Layout(title=name, width=1200, height=640)
-    fig = go.Figure(data=data, layout=layout)
-    py.image.save_as(fig,
+    py.image.save_as(go.Figure(data=data, layout=layout),
                      filename=PROJ_PATH.joinpath("out", "{}.png".format(name)))
 
 
