@@ -1,12 +1,6 @@
 import random
 
 
-class RollCoord(object):
-    def __init__(self, func, num):
-        self.x = num
-        self.y = func()
-
-
 def roll(sides):
     return random.randint(1, sides)
 
@@ -36,13 +30,6 @@ def d12():
 
 def d12_drop_below3():
     return drop_below(d12, 3)
-
-
-def get_roll_coord_list(func, num):
-    roll_list = []
-    for i in range(0, num):
-        roll_list.append(RollCoord(func, i))
-    return roll_list
 
 
 def calculate_average(func, msg, num_turns=100000):
