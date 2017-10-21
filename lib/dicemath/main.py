@@ -34,12 +34,14 @@ def get_value_over_turns_trace(dice, number_of_turns):
     y = []
     for i in range(1, number_of_turns+1):
         x.append(i)
-        y.append(dice['func']() + dice.get('offset', 0))
+        y.append(dice['func']())
     return go.Scatter(x=x,
                       y=y,
                       mode=dice['mode'],
                       name=dice['label'],
-                      line=go.Line(color=dice['color']))
+                      line=go.Line(color=dice['color']),
+                      xaxis=dice.get("xaxis", "x"),
+                      yaxis=dice.get("yaxis", "y"))
 
 
 def create_run(name, num):
@@ -70,14 +72,14 @@ dice_data = [
         "label": "d6x2",
         "color": "#99a9b6",
         "mode": "lines",
-        "offset": 12
+        "yaxis": "y2"
     },
     {
         "func": roll.d6x2_drop_below3,
         "label": "d6x2 drop 1&2",
         "color": "#016bb4",
         "mode": "lines",
-        "offset": 12
+        "yaxis": "y2"
     },
     {
         "func": roll.d12,
@@ -94,15 +96,36 @@ dice_data = [
 ]
 
 
-def main():
-    num_turns = 500
-    name = "value-over-turns-{}".format(num_turns)
+def graph_value_over_turns(name, num_turns):
     data = []
     for dice in dice_data:
         data.append(get_value_over_turns_trace(dice, num_turns))
-    layout = go.Layout(title=name, width=1200, height=640)
+    layout = go.Layout(title=name, width=1200, height=640,
+                       xaxis=dict(
+                           nticks=10,
+                           domain=[0, 1],
+                           title="# of Damage Rolls"
+                       ),
+                       yaxis=dict(
+                           nticks=12,
+                           domain=[0, 0.45],
+                           range=[1, 12],
+                           title="d12"
+                       ),
+                       yaxis2=dict(
+                           nticks=12,
+                           domain=[0.55, 1],
+                           range=[1, 12],
+                           title="d6 x2"
+                       ))
     py.image.save_as(go.Figure(data=data, layout=layout),
                      filename=PROJ_PATH.joinpath("out", "{}.png".format(name)))
+
+
+def main():
+    num_turns = 500
+    name = "value-over-turns-{}".format(num_turns)
+    graph_value_over_turns(name, num_turns)
 
 
 if __name__ == "__main__":
