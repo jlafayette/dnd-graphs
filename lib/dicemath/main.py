@@ -10,13 +10,7 @@ PROJ_PATH = pathlib.Path(__file__).parents[2]
 
 
 def get_frequency_trace(func, name, num=20):
-    frequency = {}
-    for i in range(0, num):
-        r = func()
-        try:
-            frequency[r] += 1
-        except KeyError:
-            frequency[r] = 1
+    frequency = roll.frequency(func, num_turns=num)
     x = []
     y = []
     for i in range(min(frequency.keys()), max(frequency.keys())+1):
