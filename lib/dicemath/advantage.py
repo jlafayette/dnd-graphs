@@ -1,4 +1,5 @@
 import math
+import colorsys
 
 import plotly.plotly as py
 import plotly.graph_objs as go
@@ -62,7 +63,7 @@ def graph_frequency(num_turns):
         hi = max(max(d['y']), hi)
     hi = math.ceil(hi)
 
-    layout = go.Layout(title="Advantage", width=1200, height=640,
+    layout = go.Layout(title="Advantage vs Disadvantage", width=1200, height=640,
                        xaxis=dict(
                            nticks=20,
                            domain=[0, 1],
@@ -75,13 +76,8 @@ def graph_frequency(num_turns):
                            domain=[0, 1],
                            range=[0, hi]
                        ))
-    outpath = PROJ_PATH.joinpath("out", "advantage")
-    try:
-        outpath.mkdir()
-    except FileExistsError:
-        pass
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=outpath.joinpath("frequency.png"))
+                     filename=_file_from_name("frequency"))
 
 
 def get_beat_target_frequency(dice, num_turns=100000):
@@ -115,13 +111,8 @@ def graph_beat_tgt_frequency(num_turns):
                            domain=[0, 1],
                            range=[0, 100]
                        ))
-    outpath = PROJ_PATH.joinpath("out", "advantage")
-    try:
-        outpath.mkdir()
-    except FileExistsError:
-        pass
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=outpath.joinpath("beat_tgt_frequency.png"))
+                     filename=_file_from_name("beat_tgt_frequency"))
 
 
 def get_value_over_turns_trace(dice, number_of_turns):
@@ -161,12 +152,58 @@ def graph_value_over_turns(name, num_turns):
                            title="d6 x2"
                        ))
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=PROJ_PATH.joinpath("out", "{}.png".format(name)))
+                     filename=_file_from_name(name))
+
+
+def pie_trace(dice, num_turns):
+    frequency = roll.frequency(dice['func'], num_turns=num_turns)
+    labels = sorted(frequency.keys())
+    values = []
+    for label in labels:
+        values.append(frequency[label])
+
+    n = len(values)
+    hsv_tuples = [(x * 1.0 / n, 0.5, 0.85) for x in range(n)]
+    rgb_tuples = map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples)
+    print(rgb_tuples)
+    colors = []
+    for rgb in rgb_tuples:
+        new_rgb = tuple([value*256 for value in rgb])
+        colors.append("rgb{!s}".format(new_rgb))
+        print(rgb)
+    print(colors)
+
+    print("values {}".format(values))
+    print("label {}".format(labels))
+    return go.Pie(values=values,
+                  labels=labels,
+                  text=labels,
+                  sort=True,
+                  name=dice['label'],
+                  marker=dict(colors=colors)
+                  )
+
+
+def graph_pie(name, num_turns):
+    data = [pie_trace(DICE[1], num_turns)]
+    layout = go.Layout(title=name, width=640, height=640)
+    py.image.save_as(go.Figure(data=data, layout=layout),
+                     filename=_file_from_name("pie"))
+
+
+def _file_from_name(name):
+    file_ = PROJ_PATH.joinpath("out", "advantage")
+    try:
+        file_.mkdir()
+    except FileExistsError:
+        pass
+    return file_.joinpath("{}.png".format(name))
 
 
 def main():
-    graph_frequency(100000)
-    graph_beat_tgt_frequency(10000)
+    graph_frequency(1000000)
+    graph_beat_tgt_frequency(100000)
+    graph_pie("Advantage", 100000)
 
 
 if __name__ == "__main__":
