@@ -20,19 +20,21 @@ DICE = [
     {
         "func": roll.d20,
         "label": "d20",
-        "color": "#99a9b6",
+        "color": "#6b6b6b",
         "mode": "lines",
+        "yaxis": "y2",
     },
     {
         "func": advantage,
         "label": "Advantage",
-        "color": "#99a9b6",
+        "color": "#016bb4",
         "mode": "lines",
+        "yaxis": "y3",
     },
     {
         "func": disadvantage,
         "label": "Disadvantage",
-        "color": "#99a9b6",
+        "color": "#a70000",
         "mode": "lines",
     }
 ]
@@ -125,34 +127,64 @@ def get_value_over_turns_trace(dice, number_of_turns):
                       y=y,
                       mode=dice['mode'],
                       name=dice['label'],
-                      line=go.Line(color=dice['color'])
+                      line=go.Line(color=dice['color']),
+                      xaxis=dice.get("xaxis", "x"),
+                      yaxis=dice.get("yaxis", "y")
                       )
 
 
-def graph_value_over_turns(name, num_turns):
+def graph_value_over_turns(num_turns):
     data = []
     for dice in DICE:
         data.append(get_value_over_turns_trace(dice, num_turns))
-    layout = go.Layout(title=name, width=1200, height=640,
+
+    def horizontal_line(yref):
+        return dict(
+            line=dict(
+                color="#000000",
+                width=1
+            ),
+            type="line",
+            x0=0,
+            x1=500,
+            xref="x",
+            y0=10.5,
+            y1=10.5,
+            yref=yref
+        )
+
+    layout = go.Layout(title="Value over turns", width=1200, height=800,
                        xaxis=dict(
                            nticks=10,
                            domain=[0, 1],
-                           title="# of Damage Rolls"
+                           title="# of Rolls"
                        ),
                        yaxis=dict(
-                           nticks=12,
-                           domain=[0, 0.45],
-                           range=[1, 12],
-                           title="d12"
+                           nticks=10,
+                           domain=[0, 0.3],
+                           range=[1, 20],
+                           title="Disadvantage"
                        ),
                        yaxis2=dict(
-                           nticks=12,
-                           domain=[0.55, 1],
-                           range=[1, 12],
-                           title="d6 x2"
-                       ))
+                           nticks=10,
+                           domain=[0.363, 0.636],
+                           range=[1, 20],
+                           title="d20"
+                       ),
+                       yaxis3=dict(
+                           nticks=10,
+                           domain=[0.696, 1],
+                           range=[1, 20],
+                           title="Advantage"
+                       ),
+                       shapes=[
+                           horizontal_line("y"),
+                           horizontal_line("y2"),
+                           horizontal_line("y3")
+                       ]
+                       )
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name(name))
+                     filename=_file_from_name("value-over-turns"))
 
 
 def pie_trace(dice, num_turns):
@@ -184,11 +216,11 @@ def pie_trace(dice, num_turns):
                   )
 
 
-def graph_pie(name, num_turns):
+def graph_pie(num_turns):
     data = [pie_trace(DICE[1], num_turns)]
-    layout = go.Layout(title=name, width=640, height=640)
+    layout = go.Layout(title="Advantage", width=640, height=640)
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name("pie"))
+                     filename=_file_from_name("advantage-pie"))
 
 
 def _file_from_name(name):
@@ -203,7 +235,8 @@ def _file_from_name(name):
 def main():
     graph_frequency(1000000)
     graph_beat_tgt_frequency(100000)
-    graph_pie("Advantage", 100000)
+    graph_pie(100000)
+    graph_value_over_turns(500)
 
 
 if __name__ == "__main__":
