@@ -1,6 +1,15 @@
 import random
 
 
+class Dice(object):
+    def __init__(self, sides):
+        self.sides = sides
+
+    def __iter__(self):
+        for i in range(1, self.sides + 1):
+            yield i
+
+
 def roll(sides):
     return random.randint(1, sides)
 
@@ -58,6 +67,94 @@ def beat_target_frequency(roll_func, tgt_range, num_turns=100000):
                 except KeyError:
                     frequency_dict[tgt] = 1
     return frequency_dict
+
+
+def xdice(dice_list, input_sum=0):
+    if len(dice_list) == 1:
+        for n in dice_list[0]:
+            yield input_sum + n
+    else:
+        pass_down_dice_list = dice_list[1:]
+        for n in dice_list[0]:
+            yield from xdice(pass_down_dice_list, input_sum=input_sum + n)
+
+
+def xdice2(dice_list, rule_func, prev_rolls=None):
+    if prev_rolls is None:
+        pr = []
+    else:
+        pr = prev_rolls[:]
+    if len(dice_list) == 1:
+        for n in dice_list[0]:
+            yield rule_func(pr, n)
+    else:
+        pass_down_dice_list = dice_list[1:]
+        for n in dice_list[0]:
+            yield from xdice2(pass_down_dice_list, rule_func, prev_rolls=pr + [n])
+
+
+def advantage_gen():
+    yield from xdice2([Dice(20)]*2, lambda x, y: max(x + [y]))
+
+
+def disadvantage_gen():
+    yield from xdice2([Dice(20)]*2, lambda x, y: min(x + [y]))
+
+
+def _frequency(gen_func):
+    f = {}
+    for x in gen_func():
+        try:
+            f[x] += 1
+        except KeyError:
+            f[x] = 1
+    return f
+
+
+def advantage_frequency():
+    return _frequency(advantage_gen)
+
+
+def disadvantage_frequency():
+    return _frequency(disadvantage_gen)
+
+
+def _beat_tgt_frequency(gen_func):
+    f = {}
+    tgt_range = range(min(gen_func()), max(gen_func()) + 1)
+    for r in gen_func():
+        for tgt in tgt_range:
+            if r >= tgt:
+                try:
+                    f[tgt] += 1
+                except KeyError:
+                    f[tgt] = 1
+    return f
+
+
+def advantage_beat_tgt_frequency():
+    return _beat_tgt_frequency(advantage_gen)
+
+
+def disadvantage_beat_tgt_frequency():
+    return _beat_tgt_frequency(disadvantage_gen)
+
+
+def xdicefrequency(dice_list):
+    f = {}
+    for x in xdice(dice_list):
+        try:
+            f[x] += 1
+        except KeyError:
+            f[x] = 1
+    return f
+
+
+def percentage_from_prob_dict(num, prob_dict):
+    total = 0
+    for k, v in prob_dict.items():
+        total += v
+    return (float(prob_dict[num]) / float(total)) * 100
 
 
 def calculate_average(func, msg, num_turns=100000):
