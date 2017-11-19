@@ -49,7 +49,7 @@ def get_frequency_trace(dice):
             y.append(roll.percentage_from_prob_dict(i, frequency))
         except KeyError:
             y.append(0)
-    return go.Scatter(x=x, y=y, mode="lines+markers", name=dice['label'])
+    return go.Scatter(x=x, y=y, mode=dice['mode'], name=dice['label'])
 
 
 def get_value_over_turns_trace(dice, number_of_turns):
@@ -73,8 +73,8 @@ def graph_frequency():
         data.append(get_frequency_trace(dice))
     layout = go.Layout(title="Weapon Damage", width=800, height=640,
                        xaxis=dict(
-                           nticks=14,
-                           range=[0, 13],
+                           nticks=12,
+                           range=[1, 12],
                            title="Amount"
                        ),
                        yaxis=dict(
