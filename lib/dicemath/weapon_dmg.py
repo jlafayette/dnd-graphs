@@ -1,12 +1,9 @@
-import pathlib
-
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-from . import roll, randomroll
+from . import roll, randomroll, PROJ_PATH
 
 
-PROJ_PATH = pathlib.Path(__file__).parents[2]
 DICE = [
     {
         "random": randomroll.d6x2,

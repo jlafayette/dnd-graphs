@@ -4,8 +4,7 @@ import colorsys
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-from .main import PROJ_PATH
-from . import roll, randomroll
+from . import roll, randomroll, PROJ_PATH
 
 
 def advantage():
