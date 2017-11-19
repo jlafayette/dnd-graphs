@@ -3,24 +3,56 @@ import pathlib
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-from . import randomroll
+from . import roll, randomroll
 
 
 PROJ_PATH = pathlib.Path(__file__).parents[2]
+DICE = [
+    {
+        "random": randomroll.d6x2,
+        "frequency": roll.frequency(roll.d6x2_gen),
+        "label": "d6x2",
+        "color": "#99a9b6",
+        "mode": "lines",
+        "yaxis": "y2"
+    },
+    {
+        "random": randomroll.d6x2_drop_below3,
+        "frequency": roll.frequency(roll.d6x2_reroll_below3_gen),
+        "label": "d6x2 drop 1&2",
+        "color": "#016bb4",
+        "mode": "lines",
+        "yaxis": "y2"
+    },
+    {
+        "random": randomroll.d12,
+        "frequency": roll.frequency(roll.d12_gen),
+        "label": "d12",
+        "color": "#ff9138",
+        "mode": "lines"
+    },
+    {
+        "random": randomroll.d12_drop_below3,
+        "frequency": roll.frequency(roll.d12_reroll_below3_gen),
+        "label": "d12 drop 1&2",
+        "color": "#a70000",
+        "mode": "lines"
+    }
+]
 
 
-def get_frequency_trace(func, name, num=20):
-    frequency = randomroll.frequency(func, num_turns=num)
+def get_frequency_trace(dice):
+    frequency = dice['frequency']
     x = []
     y = []
     for i in range(min(frequency.keys()), max(frequency.keys())+1):
         x.append(i)
         try:
-            # y.append(float(frequency[i])/float(num))
-            y.append(frequency[i])
+            # y.append(frequency[i])
+            y.append(roll.percentage_from_prob_dict(i, frequency))
         except KeyError:
             y.append(0)
-    return go.Scatter(x=x, y=y, mode="lines+markers", name=name)
+    return go.Scatter(x=x, y=y, mode="lines+markers", name=dice['label'])
 
 
 def get_value_over_turns_trace(dice, number_of_turns):
@@ -28,7 +60,7 @@ def get_value_over_turns_trace(dice, number_of_turns):
     y = []
     for i in range(1, number_of_turns+1):
         x.append(i)
-        y.append(dice['func']())
+        y.append(dice['random']())
     return go.Scatter(x=x,
                       y=y,
                       mode=dice['mode'],
@@ -38,63 +70,29 @@ def get_value_over_turns_trace(dice, number_of_turns):
                       yaxis=dice.get("yaxis", "y"))
 
 
-def create_run(name, num):
-    d6x2_trace = get_frequency_trace(randomroll.d6x2, "d6x2", num=num)
-    d12_trace = get_frequency_trace(randomroll.d12, "d12", num=num)
-    d6x2_drop12_trace = get_frequency_trace(randomroll.d6x2_drop_below3,
-                                            "d6x2 drop 1&2", num=num)
-    d12_drop12_trace = get_frequency_trace(randomroll.d12_drop_below3,
-                                           "d12 drop 1&2", num=num)
-
-    data = [d6x2_trace, d12_trace, d6x2_drop12_trace, d12_drop12_trace]
-    layout = go.Layout(title=name, width=800, height=640)
-    py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=PROJ_PATH.joinpath("out", "{}.png".format(name)))
-
-
-def create_series():
-    num = 1000
-    out_prefix = "line-plot-compare-{}".format(num)
-    for i in range(1, 6):
-        out_image = "{}-{}".format(out_prefix, i)
-        create_run(out_image, num)
-
-
-dice_data = [
-    {
-        "func": randomroll.d6x2,
-        "label": "d6x2",
-        "color": "#99a9b6",
-        "mode": "lines",
-        "yaxis": "y2"
-    },
-    {
-        "func": randomroll.d6x2_drop_below3,
-        "label": "d6x2 drop 1&2",
-        "color": "#016bb4",
-        "mode": "lines",
-        "yaxis": "y2"
-    },
-    {
-        "func": randomroll.d12,
-        "label": "d12",
-        "color": "#ff9138",
-        "mode": "lines"
-    },
-    {
-        "func": randomroll.d12_drop_below3,
-        "label": "d12 drop 1&2",
-        "color": "#a70000",
-        "mode": "lines"
-    }
-]
-
-
-def graph_value_over_turns(name, num_turns):
+def graph_frequency():
     data = []
-    for dice in dice_data:
+    for dice in DICE:
+        data.append(get_frequency_trace(dice))
+    layout = go.Layout(title="Weapon Damage", width=800, height=640,
+                       xaxis=dict(
+                           nticks=14,
+                           range=[0, 13],
+                           title="Amount"
+                       ),
+                       yaxis=dict(
+                           ticksuffix="%",
+                           title="Frequency"
+                       ))
+    py.image.save_as(go.Figure(data=data, layout=layout),
+                     filename=_file_from_name("weapon-dmg-frequency"))
+
+
+def graph_value_over_turns(num_turns):
+    data = []
+    for dice in DICE:
         data.append(get_value_over_turns_trace(dice, num_turns))
-    layout = go.Layout(title=name, width=1200, height=640,
+    layout = go.Layout(title="Value Over Turns", width=1200, height=640,
                        xaxis=dict(
                            nticks=10,
                            domain=[0, 1],
@@ -113,14 +111,13 @@ def graph_value_over_turns(name, num_turns):
                            title="d6 x2"
                        ))
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=PROJ_PATH.joinpath("out", "{}.png".format(name)))
+                     filename=_file_from_name("value-over-turns-{}".format(num_turns)))
 
 
-def main():
-    num_turns = 500
-    name = "value-over-turns-{}".format(num_turns)
-    graph_value_over_turns(name, num_turns)
-
-
-if __name__ == "__main__":
-    main()
+def _file_from_name(name):
+    file_ = PROJ_PATH.joinpath("out", "weapon_dmg")
+    try:
+        file_.mkdir()
+    except FileExistsError:
+        pass
+    return file_.joinpath("{}.png".format(name))
