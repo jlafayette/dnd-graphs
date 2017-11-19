@@ -1,9 +1,9 @@
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-from . import roll, randomroll, PROJ_PATH
+from . import roll, randomroll, utils
 
-
+OUT_FOLDER_NAME = "weapon_dmg"
 DICE = [
     {
         "random": randomroll.d6x2,
@@ -82,7 +82,7 @@ def graph_frequency():
                            title="Frequency"
                        ))
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name("weapon-dmg-frequency"))
+                     filename=utils.file_from_name(OUT_FOLDER_NAME, "weapon-dmg-frequency"))
 
 
 def graph_value_over_turns(num_turns):
@@ -108,13 +108,5 @@ def graph_value_over_turns(num_turns):
                            title="d6 x2"
                        ))
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name("value-over-turns-{}".format(num_turns)))
-
-
-def _file_from_name(name):
-    file_ = PROJ_PATH.joinpath("out", "weapon_dmg")
-    try:
-        file_.mkdir()
-    except FileExistsError:
-        pass
-    return file_.joinpath("{}.png".format(name))
+                     filename=utils.file_from_name(OUT_FOLDER_NAME,
+                                                   "value-over-turns-{}".format(num_turns)))

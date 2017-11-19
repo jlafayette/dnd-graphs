@@ -4,7 +4,7 @@ import colorsys
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-from . import roll, randomroll, PROJ_PATH
+from . import roll, randomroll, utils
 
 
 def advantage():
@@ -15,6 +15,7 @@ def disadvantage():
     return min(randomroll.d20(), randomroll.d20())
 
 
+OUT_FOLDER_NAME = "advantage"
 DICE = [
     {
         "random": randomroll.d20,
@@ -84,7 +85,7 @@ def graph_frequency():
                            range=[0, hi]
                        ))
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name("frequency"))
+                     filename=utils.file_from_name(OUT_FOLDER_NAME, "frequency"))
 
 
 def get_beat_target_frequency(dice):
@@ -119,7 +120,7 @@ def graph_beat_tgt_frequency():
                            range=[0, 100]
                        ))
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name("beat_tgt_frequency"))
+                     filename=utils.file_from_name(OUT_FOLDER_NAME, "beat_tgt_frequency"))
 
 
 def get_value_over_turns_trace(dice, number_of_turns):
@@ -189,7 +190,7 @@ def graph_value_over_turns(num_turns):
                        ]
                        )
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name("value-over-turns"))
+                     filename=utils.file_from_name(OUT_FOLDER_NAME, "value-over-turns"))
 
 
 def pie_trace(dice):
@@ -225,13 +226,4 @@ def graph_pie():
     data = [pie_trace(DICE[1])]
     layout = go.Layout(title="Advantage", width=640, height=640)
     py.image.save_as(go.Figure(data=data, layout=layout),
-                     filename=_file_from_name("advantage-pie"))
-
-
-def _file_from_name(name):
-    file_ = PROJ_PATH.joinpath("out", "advantage")
-    try:
-        file_.mkdir()
-    except FileExistsError:
-        pass
-    return file_.joinpath("{}.png".format(name))
+                     filename=utils.file_from_name(OUT_FOLDER_NAME, "advantage-pie"))
