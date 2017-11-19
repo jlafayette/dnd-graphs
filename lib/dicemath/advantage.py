@@ -5,7 +5,7 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 
 from .main import PROJ_PATH
-from . import randomroll
+from . import roll, randomroll
 
 
 def advantage():
@@ -18,21 +18,27 @@ def disadvantage():
 
 DICE = [
     {
-        "func": randomroll.d20,
+        "random": randomroll.d20,
+        "frequency": roll.frequency(roll.d20_gen),
+        "beat_tgt_frequency": roll.beat_tgt_frequency(roll.d20_gen),
         "label": "d20",
         "color": "#6b6b6b",
         "mode": "lines",
         "yaxis": "y2",
     },
     {
-        "func": advantage,
+        "random": advantage,
+        "frequency": roll.advantage_frequency(),
+        "beat_tgt_frequency": roll.beat_tgt_frequency(roll.advantage_gen),
         "label": "Advantage",
         "color": "#016bb4",
         "mode": "lines",
         "yaxis": "y3",
     },
     {
-        "func": disadvantage,
+        "random": disadvantage,
+        "frequency": roll.disadvantage_frequency(),
+        "beat_tgt_frequency": roll.beat_tgt_frequency(roll.disadvantage_gen),
         "label": "Disadvantage",
         "color": "#a70000",
         "mode": "lines",
@@ -40,8 +46,8 @@ DICE = [
 ]
 
 
-def get_frequency_trace(dice, num_turns=100000):
-    frequency = randomroll.frequency(dice['func'], num_turns=num_turns)
+def get_frequency_trace(dice):
+    frequency = dice['frequency']
     lo = min(frequency.keys())
     hi = max(frequency.keys())
     x = []
@@ -49,16 +55,16 @@ def get_frequency_trace(dice, num_turns=100000):
     for i in range(lo, hi+1):
         x.append(i)
         try:
-            y.append(float(frequency[i])/float(num_turns)*100)  # percentage
+            y.append(roll.percentage_from_prob_dict(i, frequency))
         except KeyError:
             y.append(0)
     return go.Scatter(x=x, y=y, mode=dice['mode'], name=dice['label'])
 
 
-def graph_frequency(num_turns):
+def graph_frequency():
     data = []
     for dice in DICE:
-        data.append(get_frequency_trace(dice, num_turns))
+        data.append(get_frequency_trace(dice))
 
     hi = 5.0
     for d in data:
@@ -82,23 +88,23 @@ def graph_frequency(num_turns):
                      filename=_file_from_name("frequency"))
 
 
-def get_beat_target_frequency(dice, num_turns=100000):
-    frequency = randomroll.beat_target_frequency(dice['func'], range(1, 22), num_turns=num_turns)
+def get_beat_target_frequency(dice):
+    frequency = dice['beat_tgt_frequency']
     x = []
     y = []
     for i in range(1, 22):
         x.append(i)
         try:
-            y.append(float(frequency[i])/float(num_turns)*100)  # percentage
+            y.append(roll.percentage_from_prob_dict(i, frequency))
         except KeyError:
             y.append(0)
     return go.Scatter(x=x, y=y, mode=dice['mode'], name=dice['label'])
 
 
-def graph_beat_tgt_frequency(num_turns):
+def graph_beat_tgt_frequency():
     data = []
     for dice in DICE:
-        data.append(get_beat_target_frequency(dice, num_turns))
+        data.append(get_beat_target_frequency(dice))
 
     layout = go.Layout(title="Advantage vs Targets", width=900, height=640,
                        xaxis=dict(
@@ -122,7 +128,7 @@ def get_value_over_turns_trace(dice, number_of_turns):
     y = []
     for i in range(1, number_of_turns+1):
         x.append(i)
-        y.append(dice['func']())
+        y.append(dice['random']())
     return go.Scatter(x=x,
                       y=y,
                       mode=dice['mode'],
@@ -187,8 +193,8 @@ def graph_value_over_turns(num_turns):
                      filename=_file_from_name("value-over-turns"))
 
 
-def pie_trace(dice, num_turns):
-    frequency = randomroll.frequency(dice['func'], num_turns=num_turns)
+def pie_trace(dice):
+    frequency = dice['frequency']
     labels = sorted(frequency.keys())
     values = []
     for label in labels:
@@ -216,8 +222,8 @@ def pie_trace(dice, num_turns):
                   )
 
 
-def graph_pie(num_turns):
-    data = [pie_trace(DICE[1], num_turns)]
+def graph_pie():
+    data = [pie_trace(DICE[1])]
     layout = go.Layout(title="Advantage", width=640, height=640)
     py.image.save_as(go.Figure(data=data, layout=layout),
                      filename=_file_from_name("advantage-pie"))
@@ -230,14 +236,3 @@ def _file_from_name(name):
     except FileExistsError:
         pass
     return file_.joinpath("{}.png".format(name))
-
-
-def main():
-    graph_frequency(1000000)
-    graph_beat_tgt_frequency(100000)
-    graph_pie(100000)
-    graph_value_over_turns(500)
-
-
-if __name__ == "__main__":
-    main()

@@ -108,9 +108,10 @@ def disadvantage_frequency():
 
 
 def beat_tgt_frequency(gen_func):
-    f = {}
+    f = {"total": 0}
     tgt_range = range(min(gen_func()), max(gen_func()) + 1)
     for r in gen_func():
+        f['total'] += 1
         for tgt in tgt_range:
             if r >= tgt:
                 try:
@@ -139,9 +140,12 @@ def xdicefrequency(dice_list):
 
 
 def percentage_from_prob_dict(num, prob_dict):
-    total = 0
-    for k, v in prob_dict.items():
-        total += v
+    try:
+        total = prob_dict['total']
+    except KeyError:
+        total = 0
+        for k, v in prob_dict.items():
+            total += v
     return (float(prob_dict[num]) / float(total)) * 100
 
 
