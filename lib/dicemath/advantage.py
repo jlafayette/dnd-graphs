@@ -4,21 +4,21 @@ import colorsys
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-from main import PROJ_PATH
-import roll
+from .main import PROJ_PATH
+from . import randomroll
 
 
 def advantage():
-    return max(roll.d20(), roll.d20())
+    return max(randomroll.d20(), randomroll.d20())
 
 
 def disadvantage():
-    return min(roll.d20(), roll.d20())
+    return min(randomroll.d20(), randomroll.d20())
 
 
 DICE = [
     {
-        "func": roll.d20,
+        "func": randomroll.d20,
         "label": "d20",
         "color": "#6b6b6b",
         "mode": "lines",
@@ -41,7 +41,7 @@ DICE = [
 
 
 def get_frequency_trace(dice, num_turns=100000):
-    frequency = roll.frequency(dice['func'], num_turns=num_turns)
+    frequency = randomroll.frequency(dice['func'], num_turns=num_turns)
     lo = min(frequency.keys())
     hi = max(frequency.keys())
     x = []
@@ -83,7 +83,7 @@ def graph_frequency(num_turns):
 
 
 def get_beat_target_frequency(dice, num_turns=100000):
-    frequency = roll.beat_target_frequency(dice['func'], range(1, 22), num_turns=num_turns)
+    frequency = randomroll.beat_target_frequency(dice['func'], range(1, 22), num_turns=num_turns)
     x = []
     y = []
     for i in range(1, 22):
@@ -188,7 +188,7 @@ def graph_value_over_turns(num_turns):
 
 
 def pie_trace(dice, num_turns):
-    frequency = roll.frequency(dice['func'], num_turns=num_turns)
+    frequency = randomroll.frequency(dice['func'], num_turns=num_turns)
     labels = sorted(frequency.keys())
     values = []
     for label in labels:

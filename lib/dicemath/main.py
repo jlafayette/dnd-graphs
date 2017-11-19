@@ -3,14 +3,14 @@ import pathlib
 import plotly.plotly as py
 import plotly.graph_objs as go
 
-import roll
+from . import randomroll
 
 
 PROJ_PATH = pathlib.Path(__file__).parents[2]
 
 
 def get_frequency_trace(func, name, num=20):
-    frequency = roll.frequency(func, num_turns=num)
+    frequency = randomroll.frequency(func, num_turns=num)
     x = []
     y = []
     for i in range(min(frequency.keys()), max(frequency.keys())+1):
@@ -39,11 +39,11 @@ def get_value_over_turns_trace(dice, number_of_turns):
 
 
 def create_run(name, num):
-    d6x2_trace = get_frequency_trace(roll.d6x2, "d6x2", num=num)
-    d12_trace = get_frequency_trace(roll.d12, "d12", num=num)
-    d6x2_drop12_trace = get_frequency_trace(roll.d6x2_drop_below3,
+    d6x2_trace = get_frequency_trace(randomroll.d6x2, "d6x2", num=num)
+    d12_trace = get_frequency_trace(randomroll.d12, "d12", num=num)
+    d6x2_drop12_trace = get_frequency_trace(randomroll.d6x2_drop_below3,
                                             "d6x2 drop 1&2", num=num)
-    d12_drop12_trace = get_frequency_trace(roll.d12_drop_below3,
+    d12_drop12_trace = get_frequency_trace(randomroll.d12_drop_below3,
                                            "d12 drop 1&2", num=num)
 
     data = [d6x2_trace, d12_trace, d6x2_drop12_trace, d12_drop12_trace]
@@ -62,27 +62,27 @@ def create_series():
 
 dice_data = [
     {
-        "func": roll.d6x2,
+        "func": randomroll.d6x2,
         "label": "d6x2",
         "color": "#99a9b6",
         "mode": "lines",
         "yaxis": "y2"
     },
     {
-        "func": roll.d6x2_drop_below3,
+        "func": randomroll.d6x2_drop_below3,
         "label": "d6x2 drop 1&2",
         "color": "#016bb4",
         "mode": "lines",
         "yaxis": "y2"
     },
     {
-        "func": roll.d12,
+        "func": randomroll.d12,
         "label": "d12",
         "color": "#ff9138",
         "mode": "lines"
     },
     {
-        "func": roll.d12_drop_below3,
+        "func": randomroll.d12_drop_below3,
         "label": "d12 drop 1&2",
         "color": "#a70000",
         "mode": "lines"
