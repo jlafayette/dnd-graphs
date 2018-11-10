@@ -1,5 +1,9 @@
-.idea/
 out/
 
+# python
 *.pyc
 
+# editor config
+.idea/
+.vscode/
+*.code-workspace
